@@ -41,6 +41,7 @@ outlierlbl = function(x, g = 2.2, plot = FALSE){
         hist(x, xlim = c(lower-1, upper+1))
         abline(v = upper, col = 'red')
         abline(v = lower, col = 'red')
+        lines(density(x), col = 'green', lwd = 2.5)
     }
     
     # return stuff
