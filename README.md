@@ -8,3 +8,8 @@ Simple function which takes in a vector of DVs and performs:  (1) normality chec
 
 *Hoaglin, D., & Iglewicz, B. (1987) Fine-Tuning Some Resistant Rules for Outlier Labeling. Journal of the American Statistical Association, 82(400), 1147-1149. doi:10.2307/2289392*
 
+## Cohen's D for t-test - 'os.cohend.R' & 'ps.cohend.R'
+simple functions for one-sample and paired sample Cohen's D calculation
+
+## One sample t-test writer - 'tt.os.R'
+Function runs normality test, t-test, effect size (D) and power calculation, returns copy-paste results. 
