@@ -1,19 +1,19 @@
-os.cohend = function(data, mu, plot = 1){
+os.cohend = function(data, mu, N){
     
-    smean = mean(data, na.rm = 1)
-    sstd = sd(data, na.rm = 1)
+    # replicates http://www.real-statistics.com/students-t-distribution/one-sample-t-test/confidence-interval-one-sample-cohens-d/
     
-    d = (mu-smean) / sstd
+    t = t.test(data, mu = mu)$statistic[[1]]
+    d = t/sqrt(N)
     
-    if (plot == 1){
-        plot(density(data), main = 'one sample cohen D')
-        abline(v = mu, col = 'red')
-        abline(v = smean, col = 'blue')
-        text(mu,0,labels = 'mu', col = 'red')
-        text(smean,0,labels = 'M', col = 'blue')
-        abline(v = smean - sstd, col = 'blue', lty=2, lwd = 0.7)
-        abline(v = smean + sstd, col = 'blue', lty=2, lwd = 0.7)
-    }
+    # CIs
+    # d ± se * z
+    # se = sqrt( 1/n + d^2 / 2n )
     
-    return(d)
+    se = sqrt(1/N + d^2 / (2*N))
+    z = qnorm(1-0.05/2)
+    
+    lCI = d - se * z
+    uCI = d + se * z
+    
+    return(list(d = d, lCI = lCI, uCI = uCI))
 }

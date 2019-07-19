@@ -1,4 +1,4 @@
-tt.os = function(x, mu, n, DV, alpha = .05, type = 'two.sided'){
+tt.os = function(x, mu, N, DV, alpha = .05, type = 'two.sided'){
     
     # This wrapper funnction takes care of:
     # (1) normality check
@@ -26,7 +26,7 @@ tt.os = function(x, mu, n, DV, alpha = .05, type = 'two.sided'){
     x.norm = shapiro.test(x)
     # write 
     if (x.norm$p.value >= .05){
-        msg = sprintf("Shapiro-Wilk normality test for the DV of %s was not significant (p = %.3f), so the then the null hypothesis that the data are normally distributed is not rejected. ", 
+        msg = sprintf("Shapiro-Wilk normality test for the DV of %s was not significant (p = %.3f), so then the null hypothesis that the data are normally distributed is not rejected. ", 
                       DV, x.norm$p.value)
     } else {
         msg = sprintf("Shapiro-Wilk normality test for the DV of %s was significant (W = %.3f, p = %.3f), so the null hypothesis that the data are normally distributed is rejected. ", 
@@ -47,18 +47,28 @@ tt.os = function(x, mu, n, DV, alpha = .05, type = 'two.sided'){
             msg = paste(msg, "A total of %i outliers were detected, 90% winsorization was applied to the data and Shapiro-Wilk normality test re-run, which was not significant (p = %.3f) so the then the null hypothesis that the data are normally distributed is not rejected ", 
                         outl$outlierN, x.norm$p.value)
         } else {
-            msg = paste(msg, "A total of %i outliers were detected, 90% winsorization was applied to the data and Shapiro-Wilk normality test re-run, which significant (W = %.3f, p = %.3f) so the null hypothesis that the data are normally distributed is rejected. ", 
+            msg = paste(msg, "A total of %i outliers were detected, 90% winsorization was applied to the data and Shapiro-Wilk normality test re-run, which was significant (W = %.3f, p = %.3f) so the null hypothesis that the data are normally distributed is rejected. ", 
                         outl$outlierN, x.norm$statistic[[1]], x.norm$p.value)
         }
 
     }
     
-    # run t-test
-    test = t.test(x,mu = mu)
+    # run t-test or wilcoxon
+    if (x.norm < 0.05){
+        test = wilcox.test(x, mu = 0, alternative = "two.sided")
+    } else {
+        test = t.test(x,mu = mu)
+    }
+    
     # run effect size 
-    effect = os.cohend(x,mu, plot = 0)
+    cohen = os.cohend(x,mu,N)
+    d = cohen$d
+    dCIl = cohen$lCI # CI
+    dCIu = cohen$uCI # CI
+
     # run power analysis
-    power = pwr.t.test(n, d = effect, sig.level = alpha, type = 'one.sample', alternative = type)
+    power = pwr.t.test(N, d = d, sig.level = alpha, type = 'one.sample', alternative = type)
+    
     # sign for p
     if (round(test$p.value,3) == 0){
         psign = '<'
@@ -67,19 +77,21 @@ tt.os = function(x, mu, n, DV, alpha = .05, type = 'two.sided'){
         psign = '='
         p = test$p.value
     }
+    
     # power type
     if (type == 'two.sided'){
         powertype = 'two-tailed'
     } else {
         powertype == 'one-tailed'
     }
+    
     # write
     if (test$p.value >= .05){
-        msg = paste(msg, sprintf("The %s for the DV of %s (M = %.3f, SD = %.3f) was not significant (p = %.3f, 95%% CI [%.3f, %.3f]), so the alternative hypothesis (true mean is not equal to %i) can be rejected. ", 
-                                 test$method, DV, mean(x, na.rm = 1), sd(x, na.rm = 1), test$p.value, test$conf.int[1], test$conf.int[2], mu), sep = '')
+        msg = paste(msg, sprintf("The %s for the DV of %s (M = %.3f, SD = %.3f) was not significant (p = %.3f, 95%% CI [%.3f, %.3f], d = %.3f, CI 95%% [%.3f, %.3f]), so the alternative hypothesis (true mean is not equal to %i) can be rejected. ", 
+                                 test$method, DV, mean(x, na.rm = 1), sd(x, na.rm = 1), test$p.value, test$conf.int[1], test$conf.int[2], abs(d), dCIl, dCIu, mu), sep = '')
     } else {
-        msg = paste(msg, sprintf("The %s for the DV of %s (M = %.3f, SD = %.3f) was significant (t(%i) = %.3f, p %s %.3f, 95%% CI [%.3f, %.3f]), so the alternative hypothesis (true mean is not equal to %i) can not be rejected. The effect size (Cohen's) was d = %.3f and the observed power for that effect size was %.3f (n = %i, alpha = %.2f, %s).", 
-                                 test$method, DV, mean(x, na.rm = 1), sd(x, na.rm = 1), test$parameter[[1]], test$statistic[[1]], psign, p, test$conf.int[1], test$conf.int[2], mu, abs(effect), power$power, power$n, power$sig.level, powertype), sep = '')
+        msg = paste(msg, sprintf("The %s for the DV of %s (M = %.3f, SD = %.3f) was significant (t(%i) = %.3f, p %s %.3f, 95%% CI [%.3f, %.3f]), so the alternative hypothesis (true mean is not equal to %i) can not be rejected. The effect size (Cohen's) was d = %.3f, 95%% CI [%.3f, %.3f] and the observed power for that effect size was %.3f (n = %i, alpha = %.2f, %s).", 
+                                 test$method, DV, mean(x, na.rm = 1), sd(x, na.rm = 1), test$parameter[[1]], test$statistic[[1]], psign, p, test$conf.int[1], test$conf.int[2], mu, abs(d), dCIl, dCIu, power$power, power$n, power$sig.level, powertype), sep = '')
     }
 
     
