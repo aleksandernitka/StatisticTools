@@ -12,4 +12,4 @@ Simple function which takes in a vector of DVs and performs:  (1) normality chec
 Simple functions for one-sample and paired sample Cohen's D calculation
 
 ## One sample t-test writer - `tt.os.R`
-Function runs normality test, t-test, effect size (D) and power calculation, returns copy-paste results. 
+Function runs normality test, t-test, effect size (D) and power calculation, returns copy-paste results.

@@ -63,6 +63,7 @@ tt.os = function(x, mu, N, DV, alpha = .05, type = 'two.sided'){
     # run effect size 
     cohen = os.cohend(x,mu,N)
     d = cohen$d
+    r = cohen$r
     dCIl = cohen$lCI # CI
     dCIu = cohen$uCI # CI
 
@@ -87,11 +88,26 @@ tt.os = function(x, mu, N, DV, alpha = .05, type = 'two.sided'){
     
     # write
     if (test$p.value >= .05){
-        msg = paste(msg, sprintf("The %s for the DV of %s (M = %.3f, SD = %.3f) was not significant (p = %.3f, 95%% CI [%.3f, %.3f], d = %.3f, CI 95%% [%.3f, %.3f]), so the alternative hypothesis (true mean is not equal to %i) can be rejected. ", 
-                                 test$method, DV, mean(x, na.rm = 1), sd(x, na.rm = 1), test$p.value, test$conf.int[1], test$conf.int[2], abs(d), dCIl, dCIu, mu), sep = '')
+        msg = paste(msg, sprintf("The %s for the DV of %s (M = %.3f, SD = %.3f) was not significant (p = %.3f, 95%% CI [%.3f, %.3f]. The unbiased Hodge’s corrected d = %.3f, CI 95%% [%.3f, %.3f], r = %.3f, suggesting that the mean of %s and mu = %.3f differ by a %.3f of SD of the data. The alternative hypothesis (true mean is not equal to %i) can be rejected. ", 
+                                 test$method, DV, mean(x, na.rm = 1), sd(x, na.rm = 1), test$p.value, test$conf.int[1], test$conf.int[2], abs(d), dCIl, dCIu, r, DV, mu, d,mu), sep = '')
     } else {
-        msg = paste(msg, sprintf("The %s for the DV of %s (M = %.3f, SD = %.3f) was significant (t(%i) = %.3f, p %s %.3f, 95%% CI [%.3f, %.3f]), so the alternative hypothesis (true mean is not equal to %i) can not be rejected. The effect size (Cohen's) was d = %.3f, 95%% CI [%.3f, %.3f] and the observed power for that effect size was %.3f (n = %i, alpha = %.2f, %s).", 
-                                 test$method, DV, mean(x, na.rm = 1), sd(x, na.rm = 1), test$parameter[[1]], test$statistic[[1]], psign, p, test$conf.int[1], test$conf.int[2], mu, abs(d), dCIl, dCIu, power$power, power$n, power$sig.level, powertype), sep = '')
+        msg = paste(msg, sprintf("The %s for the DV of %s (M = %.3f, SD = %.3f) was significant (t(%i) = %.3f, p %s %.3f, 95%% CI [%.3f, %.3f]), so the alternative hypothesis (true mean is not equal to %i) can not be rejected. The effect size (unbiased Hodge’s corrected Cohen's) was d = %.3f, 95%% CI [%.3f, %.3f], r = %.3f, suggesting that the mean of %s and mu = %.3f differ by a %.3f of SD of the data.", 
+                                 test$method, DV, mean(x, na.rm = 1), sd(x, na.rm = 1), test$parameter[[1]], test$statistic[[1]], psign, p, test$conf.int[1], test$conf.int[2], mu, abs(d), dCIl, dCIu, r, DV, mu, d), sep = '')
+    }
+    
+    # write on power
+    if (test$p.value < .05){
+        if (power$power > .8){
+            msg = paste(msg, sprintf('The observed power for that effect size was %.3f (N = %i, alpha = %.2f, %s) which is greater than the recommended power of 0.8 and means a %.2f%% probability of encountering a Type-II error. ', 
+                                     power$power, power$n, power$sig.level, powertype, (1-power$power)*100), sep = '')
+        } else if (power$power == .8){
+            msg = paste(msg, sprintf('The observed power for that effect size was %.3f (N = %i, alpha = %.2f, %s) which is equal to the recommended power of 0.8 and means a %.2f%% probability of encountering a Type-II error. ', 
+                                     power$power, power$n, power$sig.level, powertype, (1-power$power)*100), sep = '')
+        } else {
+            msg = paste(msg, sprintf('The observed power for that effect size was %.3f (N = %i, alpha = %.2f, %s) which is below the recommended power of 0.8 and means a %.2f%% probability of encountering a Type-II error. ', 
+                                     power$power, power$n, power$sig.level, powertype, (1-power$power)*100), sep = '')
+            
+        }
     }
 
     

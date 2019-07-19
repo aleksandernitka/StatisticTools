@@ -4,6 +4,12 @@ os.cohend = function(data, mu, N){
     
     t = t.test(data, mu = mu)$statistic[[1]]
     d = t/sqrt(N)
+    df = N-1
+
+    d = d * (1 - (3 / (4 * df - 1 ))) # Hodges Correction as per Lakens 2013
+    
+    # d to r
+    r = d/sqrt(d^2 + 4)
     
     # CIs
     # d ± se * z
@@ -15,5 +21,5 @@ os.cohend = function(data, mu, N){
     lCI = d - se * z
     uCI = d + se * z
     
-    return(list(d = d, lCI = lCI, uCI = uCI))
+    return(list(d = d, lCI = lCI, uCI = uCI, r = r))
 }
