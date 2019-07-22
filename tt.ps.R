@@ -26,7 +26,7 @@ tt.ps = function(x, y, N, DV1, DV2, alpha = .05, type = 'two.sided'){
         
     }
     
-    if (norm$p.value < 0.05){
+    if (norm$p.value > 0.05){
         
         # T-TEST
         test = t.test(x,y)
@@ -95,7 +95,7 @@ tt.ps = function(x, y, N, DV1, DV2, alpha = .05, type = 'two.sided'){
         # WILCOXON
         
         # paired Sample Wilcoxon Signed Rank Test 
-        test = wilcox.test(x, y, mu = 0, alternative = "two.sided", conf.int = T)
+        test = wilcox.test(x, y, alternative = "two.sided", conf.int = T)
         
         # chng name of test
         test$method = paste('Paired Sample', test$method, sep = ' ')
@@ -143,13 +143,17 @@ tt.ps = function(x, y, N, DV1, DV2, alpha = .05, type = 'two.sided'){
         
         # write test and effect
         if (test$p.value < 0.05){
-            msg = paste(msg, sprintf("The %s for the DV of %s (\textit{M} = %.3f, \textit{Mdn} = %3.f, \textit{SD} = %.3f, \textit{IQR} = %.3f) and $mu$ = %.0f was significant (\textit{V} = %.3f, p %s %.3f, 0.95 CI [%.3f, %.3f]), so the alternative hypothesis (true mean is not equal to %i) can not be rejected. The effect size (unbiased Hodge’s corrected Cohen's) was \textit{d} = %.3f, 0.95 CI [%.3f, %.3f], \textit{r} = %.3f. ", 
-                                     test$method, DV, mean(x, na.rm = 1), median(x, na.rm = 1), sd(x, na.rm = 1), IQR(x, na.rm = 1), mu, test$statistic[[1]], psign, p, test$conf.int[1], test$conf.int[2], mu, abs(d), lCI, uCI, r), sep = '')
+            msg = paste(msg, sprintf("The %s for the for the difference between the DV of %s (\textit{M} = %.3f, \textit{Mdn} = %3.f, \textit{SD} = %.3f, \textit{IQR} = %.3f) and DV of %s (\textit{M} = %.3f, \textit{Mdn} = %3.f, \textit{SD} = %.3f, \textit{IQR} = %.3f) was significant (\textit{V} = %.3f, p %s %.3f, 0.95 CI [%.3f, %.3f]), so the alternative hypothesis (median of %s is not equal to that of %s) can not be rejected. The effect size (unbiased Hodge’s corrected Cohen's) was \textit{d} = %.3f, 0.95 CI [%.3f, %.3f], \textit{r} = %.3f. ", 
+                                     test$method, DV1, mean(x, na.rm = 1), median(x, na.rm = 1), sd(x, na.rm = 1), IQR(x, na.rm = 1), 
+                                     DV2, mean(y, na.rm = 1), median(y, na.rm = 1), sd(y, na.rm = 1), IQR(y, na.rm = 1),
+                                     test$statistic[[1]], psign, p, test$conf.int[1], test$conf.int[2], DV1, DV2, abs(d), lCI, uCI, r), sep = '')
             
         } else {
             
-            msg = paste(msg, sprintf("The %s for the DV of %s (\textit{M} = %.3f, \textit{Mdn} = %3.f, \textit{SD} = %.3f, \textit{IQR} = %.3f) and $mu$ = %.0f was not significant (\textit{p} = %.3f, 0.95 CI [%.3f, %.3f]. The unbiased Hodge’s corrected \textit{d} = %.3f, CI 0.95 [%.3f, %.3f], \textit{r} = %.3f. The alternative hypothesis (true median is not equal to %i) can be rejected. ", 
-                                     test$method, DV, mean(x, na.rm = 1), median(x, na.rm = 1), sd(x, na.rm = 1), IQR(x, na.rm = 1), mu, test$p.value, test$conf.int[1], test$conf.int[2], abs(d), lCI, uCI, r, mu), sep = '')
+            msg = paste(msg, sprintf("The %s for the for the difference between the DV of %s (\textit{M} = %.3f, \textit{Mdn} = %3.f, \textit{SD} = %.3f, \textit{IQR} = %.3f) and DV of %s (\textit{M} = %.3f, \textit{Mdn} = %3.f, \textit{SD} = %.3f, \textit{IQR} = %.3f) was not significant (\textit{p} = %.3f, 0.95 CI [%.3f, %.3f]. The unbiased Hodge’s corrected \textit{d} = %.3f, CI 0.95 [%.3f, %.3f], \textit{r} = %.3f. The alternative hypothesis (median of %s is not equal to that of %s) can be rejected. ", 
+                                     test$method, DV1, mean(x, na.rm = 1), median(x, na.rm = 1), sd(x, na.rm = 1), IQR(x, na.rm = 1), 
+                                     DV2, mean(y, na.rm = 1), median(y, na.rm = 1), sd(y, na.rm = 1), IQR(y, na.rm = 1),
+                                     test$p.value, test$conf.int[1], test$conf.int[2], abs(d), lCI, uCI, r, DV1, DV2), sep = '')
         }
         
         
@@ -165,4 +169,6 @@ tt.ps = function(x, y, N, DV1, DV2, alpha = .05, type = 'two.sided'){
                                      power$power, power$size, alpha, powertype, (1-power$power)*100), sep = '')
         }
     }
+    
+    return(msg)
 }
